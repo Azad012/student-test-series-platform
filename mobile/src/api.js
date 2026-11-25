@@ -1,17 +1,20 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { getItem, setItem, removeItem } from './storage';
 
 const TOKEN_KEY = 'student_auth_token';
 const API_URL_KEY = 'student_api_base_url';
 
+// Priority: env var → app.json extra → hardcoded Render URL
 export function getDefaultApiUrl() {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:4000';
+  if (Constants.expoConfig?.extra?.apiUrl) {
+    return Constants.expoConfig.extra.apiUrl;
   }
-  return 'http://localhost:4000';
+  // Production fallback — always use HTTPS Render URL
+  return 'https://exampulse-y2py.onrender.com';
 }
 
 let cachedApiUrl = getDefaultApiUrl();

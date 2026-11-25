@@ -1,15 +1,18 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Student Test Series",
+    "slug": "student-test-series",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.azad012.studenttestseries"
     },
     "android": {
+      "package": "com.azad012.studenttestseries",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "https://exampulse-y2py.onrender.com",
+      "eas": {
+        "projectId": "9a4b0ffc-9f12-426c-9c8c-bdb077492547"
+      }
     }
   }
 }
