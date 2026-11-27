@@ -105,12 +105,19 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
     persistAnswer(qId, nextState)
   }
 
-  function toggleMarkForReview(qId) {
+  function clearResponse(qId) {
     const currentItem = answers[qId] || { selectedOption: null, isMarkedForReview: false }
-    const nextMarked = !currentItem.isMarkedForReview
-    const nextState = { ...currentItem, isMarkedForReview: nextMarked }
+    const nextState = { ...currentItem, selectedOption: null }
     setAnswers(a => ({ ...a, [qId]: nextState }))
     persistAnswer(qId, nextState)
+  }
+
+  function saveAndNext(qId) {
+    const currentItem = answers[qId] || { selectedOption: null, isMarkedForReview: false }
+    persistAnswer(qId, currentItem)
+    if (current < total - 1) {
+      setCurrent(c => c + 1)
+    }
   }
 
   function markAndNext(qId) {
@@ -195,21 +202,17 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
                     {displayQ.subject}
                   </span>
                 )}
+                {qState.isMarkedForReview && (
+                  <span className="badge" style={{background:'rgba(124,58,237,.35)',color:'#DDD6FE',border:'1px solid #8B5CF6',fontSize:11.5}}>
+                    🟣 Marked for Review
+                  </span>
+                )}
                 {lang === 'hi' && translating && (
                   <span className="badge" style={{background:'rgba(254,240,138,.2)',color:'#FDE047',fontSize:11}}>
                     🔄 अनुवाद हो रहा है...
                   </span>
                 )}
               </div>
-
-              {/* Mark for review toggle */}
-              <button
-                type="button"
-                className={`btn-mark ${qState.isMarkedForReview ? 'active' : ''}`}
-                onClick={() => toggleMarkForReview(displayQ.id)}
-              >
-                {qState.isMarkedForReview ? '🟣 Marked for Review' : '🏷️ Mark for Review'}
-              </button>
             </div>
 
             <div className="q-text" style={{whiteSpace:'pre-wrap'}}>
@@ -235,51 +238,55 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
               })}
             </div>
 
-            {/* Sub-actions: Clear response & Mark & Next */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:14,flexWrap:'wrap',gap:8}}>
-              <div>
+            {/* Single Unified Action Bar (Previous | Clear | Mark for Review & Next | Save & Next) */}
+            <div className="exam-action-bar">
+              <div className="exam-action-left">
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{background:'rgba(255,255,255,.12)',color:'#fff',border:'none',padding:'9px 18px',fontSize:13.5,fontWeight:600}}
+                  disabled={current === 0}
+                  onClick={() => setCurrent(c => c - 1)}
+                >
+                  ← Previous
+                </button>
+
                 {qState.selectedOption && (
                   <button
                     type="button"
                     className="btn btn-sm"
-                    style={{background:'transparent',color:'rgba(255,255,255,.65)',border:'1px dashed rgba(255,255,255,.3)',padding:'5px 12px',fontSize:12}}
-                    onClick={() => selectOption(displayQ.id, qState.selectedOption)}
+                    style={{background:'transparent',color:'rgba(255,255,255,.65)',border:'1px dashed rgba(255,255,255,.3)',padding:'8px 14px',fontSize:12.5}}
+                    onClick={() => clearResponse(displayQ.id)}
                   >
-                    ✕ Clear Response
+                    ✕ Clear
                   </button>
                 )}
               </div>
 
-              <button
-                type="button"
-                className="btn-mark"
-                style={{fontSize:12.5,padding:'6px 14px'}}
-                onClick={() => markAndNext(displayQ.id)}
-              >
-                🏷️ Mark &amp; Next →
-              </button>
-            </div>
+              <div className="exam-action-right">
+                <button
+                  type="button"
+                  className="btn-mark"
+                  style={{padding:'9px 18px',fontSize:13.5,fontWeight:600}}
+                  onClick={() => markAndNext(displayQ.id)}
+                >
+                  🟣 Mark for Review &amp; Next
+                </button>
 
-            {/* Navigation buttons */}
-            <div className="exam-nav">
-              <button
-                className="btn btn-sm"
-                style={{background:'rgba(255,255,255,.12)',color:'#fff',border:'none'}}
-                disabled={current === 0}
-                onClick={() => setCurrent(c => c - 1)}
-              >
-                ← Prev
-              </button>
-
-              <div style={{display:'flex',gap:10}}>
                 {current < total - 1 ? (
-                  <button className="btn btn-primary btn-sm" onClick={() => setCurrent(c => c + 1)}>
-                    Next →
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    style={{padding:'9px 22px',fontSize:13.5,fontWeight:700}}
+                    onClick={() => saveAndNext(displayQ.id)}
+                  >
+                    Save &amp; Next →
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className="btn btn-sm"
-                    style={{background:'#059669',color:'#fff',border:'none',fontWeight:700}}
+                    style={{background:'#059669',color:'#fff',border:'none',fontWeight:700,padding:'9px 24px',fontSize:13.5}}
                     onClick={() => { if (window.confirm('Are you sure you want to submit the exam?')) submit() }}
                     disabled={submitting}
                   >

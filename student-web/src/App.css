@@ -53,6 +53,9 @@
 .option-btn:hover    { background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.3); }
 .option-btn.selected { background:rgba(79,70,229,.35); border-color:#818CF8; }
 .exam-nav     { display:flex; justify-content:space-between; align-items:center; margin-top:28px; }
+.exam-action-bar { display:flex; align-items:center; justify-content:space-between; margin-top:24px; padding-top:18px; border-top:1px solid rgba(255,255,255,.12); gap:12px; flex-wrap:wrap; }
+.exam-action-left { display:flex; align-items:center; gap:10px; }
+.exam-action-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .q-palette    { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
 .q-dot        { width:34px; height:34px; border-radius:7px; border:none; font-size:13px; font-weight:700; cursor:pointer; position:relative; transition:.1s; }
 .q-dot.answered       { background:#059669; color:#fff; }
