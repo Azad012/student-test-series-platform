@@ -38,18 +38,6 @@ export default function ResultPage({ attemptId, onBack }) {
     }
   }, [lang, data?.questions])
 
-  if (loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><div className="spinner" /></div>
-  if (error || !data) {
-    return (
-      <div style={{padding:24,maxWidth:860,margin:'0 auto'}}>
-        <div className="error-box">{error || 'Unable to load test result.'}</div>
-        <button className="btn btn-outline" onClick={onBack}>← Back to Dashboard</button>
-      </div>
-    )
-  }
-
-  const attempt = data.attempt || data.result || data
-  const test = data.test || {}
   const orderRank = useMemo(() => ({
     'quantitative aptitude': 1,
     'quant': 1,
@@ -79,6 +67,19 @@ export default function ResultPage({ attemptId, onBack }) {
       return (a.order_index ?? a.id ?? 0) - (b.order_index ?? b.id ?? 0)
     })
   }, [data?.questions, orderRank])
+
+  if (loading) return <div style={{display:'flex',justifyContent:'center',padding:80}}><div className="spinner" /></div>
+  if (error || !data) {
+    return (
+      <div style={{padding:24,maxWidth:860,margin:'0 auto'}}>
+        <div className="error-box">{error || 'Unable to load test result.'}</div>
+        <button className="btn btn-outline" onClick={onBack}>← Back to Dashboard</button>
+      </div>
+    )
+  }
+
+  const attempt = data.attempt || data.result || data
+  const test = data.test || {}
 
   const maxScore = attempt.max_score ?? attempt.maxMarks ?? (test.marks_correct ? rawQuestions.length * test.marks_correct : 100)
   const score = attempt.score ?? attempt.marks ?? 0
