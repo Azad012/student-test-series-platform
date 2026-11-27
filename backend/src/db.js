@@ -114,6 +114,17 @@ function initSchema(db) {
       UNIQUE(attempt_id, question_id)
     );
 
+    CREATE TABLE IF NOT EXISTS email_otps (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      purpose TEXT NOT NULL CHECK(purpose IN ('register', 'reset_password')),
+      otp_code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email, purpose);
     CREATE INDEX IF NOT EXISTS idx_enrollments_student ON course_enrollments(student_id);
     CREATE INDEX IF NOT EXISTS idx_tests_course ON test_series(course_id);
     CREATE INDEX IF NOT EXISTS idx_questions_test ON questions(test_id, order_index);

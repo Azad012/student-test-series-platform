@@ -55,15 +55,44 @@ test.after(async () => {
 });
 
 test('auth registration, login, and role protection', async () => {
+  const otpRes = await request('POST', '/api/auth/send-register-otp', {
+    name: 'Priya Verma',
+    email: 'priya@example.com',
+  });
+  assert.equal(otpRes.status, 200);
+  assert.ok(otpRes.body.devOtp);
+
   const reg = await request('POST', '/api/auth/register', {
     name: 'Priya Verma',
     email: 'priya@example.com',
     password: 'Password123',
     phone: '9123456789',
+    otp: otpRes.body.devOtp,
   });
   assert.equal(reg.status, 201);
   assert.ok(reg.body.token);
   assert.equal(reg.body.user.role, 'student');
+
+  // Forgot password OTP flow
+  const forgotOtp = await request('POST', '/api/auth/forgot-password/send-otp', {
+    email: 'priya@example.com',
+  });
+  assert.equal(forgotOtp.status, 200);
+  assert.ok(forgotOtp.body.devOtp);
+
+  const resetRes = await request('POST', '/api/auth/forgot-password/reset', {
+    email: 'priya@example.com',
+    otp: forgotOtp.body.devOtp,
+    newPassword: 'NewPassword123',
+  });
+  assert.equal(resetRes.status, 200);
+
+  const loginNew = await request('POST', '/api/auth/login', {
+    email: 'priya@example.com',
+    password: 'NewPassword123',
+  });
+  assert.equal(loginNew.status, 200);
+  assert.ok(loginNew.body.token);
 
   // Student cannot create a course
   const forbidden = await request(
@@ -142,7 +171,7 @@ test('admin creates course, test series, bulk CSV import, assigns student, and s
   // Student registered earlier tries to start before enrollment -> 403
   const studentLogin = await request('POST', '/api/auth/login', {
     email: 'priya@example.com',
-    password: 'Password123',
+    password: 'NewPassword123',
   });
   const studentToken = studentLogin.body.token;
 

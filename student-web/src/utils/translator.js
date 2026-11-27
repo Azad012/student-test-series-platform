@@ -7,6 +7,19 @@ export function hasHindi(text) {
   return /[\u0900-\u097F]/.test(text);
 }
 
+// Skip translation for English / Verbal Ability and Hindi subjects
+export function isNonTranslatableSubject(subject) {
+  if (!subject || typeof subject !== 'string') return false;
+  const s = subject.toLowerCase().trim();
+  return (
+    s.includes('english') ||
+    s.includes('verbal') ||
+    s.includes('hindi') ||
+    s.includes('हिन्दी') ||
+    s.includes('हिंदी')
+  );
+}
+
 // Translate a single string from English to Hindi
 export async function translateText(text) {
   if (!text || typeof text !== 'string') return text;
@@ -49,6 +62,7 @@ export async function translateText(text) {
 // Translate an entire question object into Hindi
 export async function translateQuestionToHindi(q) {
   if (!q) return q;
+  if (isNonTranslatableSubject(q.subject)) return q;
 
   // If already has Hindi question text, return as is
   if (q.question_text_hi || hasHindi(q.question_text)) {

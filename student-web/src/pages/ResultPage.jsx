@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../api'
-import { translateQuestionToHindi } from '../utils/translator'
+import { translateQuestionToHindi, isNonTranslatableSubject } from '../utils/translator'
 
 function formatQText(text) {
   if (!text) return ''
@@ -26,7 +26,7 @@ export default function ResultPage({ attemptId, onBack }) {
   useEffect(() => {
     try { localStorage.setItem('exam_lang', lang) } catch {}
     if (lang === 'hi' && data?.questions) {
-      const untranslated = data.questions.filter(q => !translatedMap[q.id])
+      const untranslated = data.questions.filter(q => !translatedMap[q.id] && !isNonTranslatableSubject(q.subject))
       if (untranslated.length > 0) {
         setTranslating(true)
         Promise.all(untranslated.map(q => translateQuestionToHindi(q).then(tQ => [q.id, tQ])))

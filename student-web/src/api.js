@@ -21,9 +21,12 @@ async function request(path, options = {}) {
 
 export const api = {
   // Auth
-  login:    (email, password) => request('/api/auth/login',    { method:'POST', body: JSON.stringify({ email, password }) }),
-  register: (payload)         => request('/api/auth/register', { method:'POST', body: JSON.stringify(payload) }),
-  me:       ()                => request('/api/auth/me'),
+  login:           (email, password) => request('/api/auth/login',                  { method:'POST', body: JSON.stringify({ email, password }) }),
+  sendRegisterOtp: (payload)         => request('/api/auth/send-register-otp',      { method:'POST', body: JSON.stringify(payload) }),
+  register:        (payload)         => request('/api/auth/register',               { method:'POST', body: JSON.stringify(payload) }),
+  sendForgotOtp:   (email)           => request('/api/auth/forgot-password/send-otp',{ method:'POST', body: JSON.stringify({ email }) }),
+  resetPassword:   (payload)         => request('/api/auth/forgot-password/reset',  { method:'POST', body: JSON.stringify(payload) }),
+  me:              ()                => request('/api/auth/me'),
 
   // Courses
   courses:      ()         => request('/api/courses'),

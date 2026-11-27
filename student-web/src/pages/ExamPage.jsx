@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { api } from '../api'
-import { translateQuestionToHindi } from '../utils/translator'
+import { translateQuestionToHindi, isNonTranslatableSubject } from '../utils/translator'
 
 function formatTime(sec) {
   const s = Math.max(0, Math.floor(sec))
@@ -137,7 +137,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   // Handle translation when Hindi is toggled or when navigating
   useEffect(() => {
     try { localStorage.setItem('exam_lang', lang) } catch {}
-    if (lang === 'hi' && q && !translatedMap[q.id]) {
+    if (lang === 'hi' && q && !translatedMap[q.id] && !isNonTranslatableSubject(q.subject)) {
       setTranslating(true)
       translateQuestionToHindi(q)
         .then(tQ => {

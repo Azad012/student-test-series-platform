@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api, setToken, getToken } from './api'
 import AuthPage from './pages/AuthPage'
+import LandingPage from './pages/LandingPage'
 import CoursesPage from './pages/CoursesPage'
 import ExamPage from './pages/ExamPage'
 import ResultPage from './pages/ResultPage'
@@ -12,6 +13,8 @@ import './App.css'
 export default function App() {
   const [user, setUser]               = useState(null)
   const [loading, setLoading]         = useState(true)
+  const [showAuth, setShowAuth]       = useState(false)
+  const [authMode, setAuthMode]       = useState('login')
   const [page, setPage]               = useState('courses')   // courses | dashboard | profile
   const [examSession, setExamSession] = useState(null)        // active exam
   const [reviewId, setReviewId]       = useState(null)        // attempt to review
@@ -46,7 +49,25 @@ export default function App() {
     </div>
   )
 
-  if (!user) return <AuthPage onLogin={handleLogin} />
+  if (!user) {
+    if (!showAuth) {
+      return (
+        <LandingPage
+          onOpenAuth={(mode = 'login') => {
+            setAuthMode(mode)
+            setShowAuth(true)
+          }}
+        />
+      )
+    }
+    return (
+      <AuthPage
+        initialMode={authMode}
+        onLogin={handleLogin}
+        onBack={() => setShowAuth(false)}
+      />
+    )
+  }
 
   if (examSession) return (
     <ExamPage
