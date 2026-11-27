@@ -1,0 +1,85 @@
+.app-shell { display:flex; flex-direction:column; min-height:100vh; }
+.app-main  { flex:1; max-width:1100px; margin:0 auto; width:100%; padding:24px 16px; }
+
+/* Navbar */
+.navbar { background:var(--navy); color:#fff; padding:0 24px; display:flex; align-items:center; justify-content:space-between; height:58px; position:sticky; top:0; z-index:100; }
+.navbar-brand { font-size:20px; font-weight:800; letter-spacing:-.3px; }
+.navbar-brand span { color:#818CF8; }
+.nav-tabs { display:flex; gap:4px; }
+.nav-tab { background:transparent; border:none; color:rgba(255,255,255,.65); padding:7px 14px; border-radius:7px; font-size:14px; font-weight:600; transition:.15s; cursor:pointer; }
+.nav-tab:hover, .nav-tab.active { background:rgba(255,255,255,.12); color:#fff; }
+.nav-right { display:flex; align-items:center; gap:10px; }
+.nav-user { font-size:13px; opacity:.75; }
+
+/* Page titles */
+.page-title { font-size:22px; font-weight:800; margin-bottom:20px; }
+.section-title { font-size:16px; font-weight:700; margin-bottom:14px; }
+
+/* Auth */
+.auth-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--navy); padding:20px; }
+.auth-card { background:var(--surface); border-radius:14px; width:100%; max-width:420px; padding:36px 32px; }
+.auth-logo  { font-size:26px; font-weight:900; color:var(--primary); margin-bottom:4px; }
+.auth-sub   { color:var(--muted); font-size:14px; margin-bottom:24px; }
+.tab-row    { display:flex; background:var(--bg); border-radius:8px; padding:4px; margin-bottom:20px; }
+.tab-btn    { flex:1; padding:8px; border:none; background:transparent; border-radius:6px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; transition:.15s; }
+.tab-btn.active { background:#fff; color:var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+.form-label  { display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:5px; }
+.form-input  { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; color:var(--text); background:var(--bg); outline:none; transition:.15s; }
+.form-input:focus { border-color:var(--primary); background:#fff; }
+.form-group  { margin-bottom:14px; }
+.demo-btn    { background:none; border:1.5px dashed var(--border); border-radius:7px; color:var(--muted); font-size:13px; padding:7px; width:100%; cursor:pointer; margin-top:10px; }
+.demo-btn:hover { border-color:var(--primary); color:var(--primary); }
+
+/* Courses */
+.courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.course-card  { border-radius:12px; border:1.5px solid var(--border); background:var(--surface); padding:20px; transition:.15s; }
+.course-card:hover { border-color:var(--primary); box-shadow:0 4px 16px rgba(79,70,229,.1); }
+.course-name  { font-size:17px; font-weight:700; margin-bottom:6px; }
+.course-desc  { color:var(--muted); font-size:13px; margin-bottom:14px; min-height:38px; }
+.tests-list   { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.test-row     { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border:1.5px solid var(--border); border-radius:9px; background:var(--bg); }
+.test-name    { font-weight:600; font-size:14px; }
+.test-meta    { font-size:12px; color:var(--muted); margin-top:2px; }
+
+/* Exam */
+.exam-wrap    { min-height:100vh; background:var(--navy); display:flex; flex-direction:column; color:#fff; }
+.exam-header  { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid rgba(255,255,255,.1); }
+.exam-timer   { font-size:22px; font-weight:800; color:#FCD34D; font-variant-numeric:tabular-nums; }
+.exam-body    { flex:1; max-width:860px; margin:0 auto; padding:30px 20px; width:100%; }
+.q-number     { font-size:13px; color:rgba(255,255,255,.55); margin-bottom:8px; }
+.q-text       { font-size:18px; font-weight:600; line-height:1.6; margin-bottom:24px; }
+.options-list { display:flex; flex-direction:column; gap:10px; }
+.option-btn   { background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12); border-radius:10px; padding:14px 18px; text-align:left; color:#fff; font-size:15px; cursor:pointer; transition:.15s; }
+.option-btn:hover    { background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.3); }
+.option-btn.selected { background:rgba(79,70,229,.35); border-color:#818CF8; }
+.exam-nav     { display:flex; justify-content:space-between; align-items:center; margin-top:28px; }
+.q-palette    { display:flex; flex-wrap:wrap; gap:6px; margin-top:20px; }
+.q-dot        { width:34px; height:34px; border-radius:7px; border:none; font-size:13px; font-weight:700; cursor:pointer; }
+.q-dot.answered  { background:#059669; color:#fff; }
+.q-dot.current   { background:#4F46E5; color:#fff; }
+.q-dot.unanswered{ background:rgba(255,255,255,.1); color:rgba(255,255,255,.6); }
+
+/* Result */
+.result-summary { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:24px; }
+.stat-card  { background:var(--surface); border-radius:10px; padding:16px; text-align:center; border:1.5px solid var(--border); }
+.stat-val   { font-size:26px; font-weight:800; }
+.stat-label { font-size:12px; color:var(--muted); margin-top:2px; }
+.review-list{ display:flex; flex-direction:column; gap:14px; }
+.review-item{ background:var(--surface); border-radius:10px; padding:18px; border-left:4px solid var(--border); }
+.review-item.correct  { border-left-color:var(--success); }
+.review-item.wrong    { border-left-color:var(--danger); }
+.review-item.skipped  { border-left-color:var(--warning); }
+
+/* Dashboard */
+.stats-row  { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+.attempts-table { width:100%; border-collapse:collapse; font-size:14px; }
+.attempts-table th { text-align:left; padding:10px 12px; border-bottom:2px solid var(--border); font-size:13px; color:var(--muted); }
+.attempts-table td { padding:11px 12px; border-bottom:1px solid var(--border); }
+.attempts-table tr:hover td { background:var(--bg); }
+
+@media(max-width:600px) {
+  .nav-tabs { display:none; }
+  .auth-card { padding:24px 18px; }
+  .exam-body { padding:20px 14px; }
+  .q-text    { font-size:15px; }
+}

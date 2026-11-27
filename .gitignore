@@ -3,6 +3,7 @@ node_modules/
 
 # Build outputs
 admin-web/dist/
+student-web/dist/
 mobile/dist-web/
 mobile/.expo/
 
