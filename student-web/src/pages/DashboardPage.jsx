@@ -43,7 +43,7 @@ export default function DashboardPage({ onReview }) {
       {attempts.length === 0 ? (
         <div className="card"><p className="text-muted">No attempts yet. Take a test to see your progress here!</p></div>
       ) : (
-        <div className="card" style={{padding:0,overflow:'hidden'}}>
+        <div className="card table-responsive" style={{padding:0}}>
           <table className="attempts-table">
             <thead>
               <tr>
