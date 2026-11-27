@@ -125,15 +125,16 @@ router.post('/:id/enroll', authenticate, requireRole('student'), (req, res) => {
   if (!course) {
     return res.status(404).json({ error: 'Course not found' });
   }
-  if (!course.is_self_enroll) {
-    return res.status(403).json({ error: 'This course requires admin enrollment' });
-  }
 
   const existing = db
     .prepare('SELECT * FROM course_enrollments WHERE course_id = ? AND student_id = ?')
     .get(courseId, req.user.id);
   if (existing) {
     return res.json({ enrolled: true, enrollment: existing });
+  }
+
+  if (!course.is_self_enroll) {
+    return res.status(403).json({ error: 'This course requires admin enrollment' });
   }
 
   const nowIso = new Date().toISOString();
