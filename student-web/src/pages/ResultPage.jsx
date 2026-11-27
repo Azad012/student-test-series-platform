@@ -1,6 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { api } from '../api'
 import { translateQuestionToHindi } from '../utils/translator'
+
+function formatQText(text) {
+  if (!text) return ''
+  return String(text).replace(/^Q\d+\.\s*/i, '')
+}
 
 export default function ResultPage({ attemptId, onBack }) {
   const [data, setData]       = useState(null)
@@ -45,7 +50,35 @@ export default function ResultPage({ attemptId, onBack }) {
 
   const attempt = data.attempt || data.result || data
   const test = data.test || {}
-  const rawQuestions = data.questions || []
+  const orderRank = useMemo(() => ({
+    'quantitative aptitude': 1,
+    'quant': 1,
+    'math': 1,
+    'mathematics': 1,
+    'logical reasoning': 2,
+    'reasoning': 2,
+    'general intelligence': 2,
+    'verbal ability': 3,
+    'english': 3,
+    'english comprehension': 3,
+    'general science': 4,
+    'general awareness': 4,
+    'science': 4,
+  }), [])
+
+  // Order review questions continuously by subject
+  const rawQuestions = useMemo(() => {
+    const raw = data?.questions || []
+    return [...raw].sort((a, b) => {
+      const sA = (a.subject || 'General').toLowerCase().trim()
+      const sB = (b.subject || 'General').toLowerCase().trim()
+      const rankA = orderRank[sA] || 99
+      const rankB = orderRank[sB] || 99
+      if (rankA !== rankB) return rankA - rankB
+      if (sA !== sB) return sA.localeCompare(sB)
+      return (a.order_index ?? a.id ?? 0) - (b.order_index ?? b.id ?? 0)
+    })
+  }, [data?.questions, orderRank])
 
   const maxScore = attempt.max_score ?? attempt.maxMarks ?? (test.marks_correct ? rawQuestions.length * test.marks_correct : 100)
   const score = attempt.score ?? attempt.marks ?? 0
@@ -149,7 +182,7 @@ export default function ResultPage({ attemptId, onBack }) {
                   </div>
 
                   <div style={{fontWeight:600,marginBottom:14,lineHeight:1.6,fontSize:15,whiteSpace:'pre-wrap'}}>
-                    {q.question_text || q.text || q.question}
+                    {formatQText(q.question_text || q.text || q.question)}
                   </div>
 
                   <div style={{display:'flex',flexDirection:'column',gap:6}}>

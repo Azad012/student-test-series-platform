@@ -8,10 +8,46 @@ function formatTime(sec) {
   return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`
 }
 
+function formatQText(text) {
+  if (!text) return ''
+  return String(text).replace(/^Q\d+\.\s*/i, '')
+}
+
 export default function ExamPage({ session, onSubmitted, onExit }) {
   const attemptId = session.attempt?.id || session.attemptId
   const testTitle = session.test?.title || session.testTitle || 'Exam'
-  const questions = session.questions || []
+
+  // Standard Subject Ordering (Continuous sections)
+  const orderRank = useMemo(() => ({
+    'quantitative aptitude': 1,
+    'quant': 1,
+    'math': 1,
+    'mathematics': 1,
+    'logical reasoning': 2,
+    'reasoning': 2,
+    'general intelligence': 2,
+    'verbal ability': 3,
+    'english': 3,
+    'english comprehension': 3,
+    'general science': 4,
+    'general awareness': 4,
+    'science': 4,
+  }), [])
+
+  // Order questions continuously by subject: 1-25 Quant, 26-50 Reasoning, 51-75 Verbal, 76-100 Science
+  const questions = useMemo(() => {
+    const raw = session.questions || []
+    return [...raw].sort((a, b) => {
+      const sA = (a.subject || 'General').toLowerCase().trim()
+      const sB = (b.subject || 'General').toLowerCase().trim()
+      const rankA = orderRank[sA] || 99
+      const rankB = orderRank[sB] || 99
+      if (rankA !== rankB) return rankA - rankB
+      if (sA !== sB) return sA.localeCompare(sB)
+      return (a.order_index ?? a.id ?? 0) - (b.order_index ?? b.id ?? 0)
+    })
+  }, [session.questions, orderRank])
+
   const total = questions.length
 
   const initialTime = session.remainingSeconds ?? session.durationSeconds ?? (session.test?.duration_minutes ? session.test.duration_minutes * 60 : 3600)
@@ -287,7 +323,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
             </div>
 
             <div className="q-text" style={{whiteSpace:'pre-wrap'}}>
-              {displayQ.question_text || displayQ.text || displayQ.question || 'Question content loading…'}
+              {formatQText(displayQ.question_text || displayQ.text || displayQ.question || 'Question content loading…')}
             </div>
 
             <div className="options-list">

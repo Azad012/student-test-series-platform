@@ -7,7 +7,11 @@ function generate100MockQuestions() {
   const items = [];
 
   for (let i = 1; i <= 100; i += 1) {
-    const subject = subjects[(i - 1) % subjects.length];
+    let subject;
+    if (i <= 25) subject = 'Quantitative Aptitude';
+    else if (i <= 50) subject = 'Logical Reasoning';
+    else if (i <= 75) subject = 'Verbal Ability';
+    else subject = 'General Science';
     if (subject === 'Quantitative Aptitude') {
       const a = (i % 15) + 4;
       const b = ((i * 3) % 12) + 2;
