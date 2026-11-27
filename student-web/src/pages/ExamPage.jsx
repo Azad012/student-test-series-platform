@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../api'
+import { translateQuestionToHindi } from '../utils/translator'
 
 function formatTime(sec) {
   const s = Math.max(0, Math.floor(sec))
@@ -16,6 +17,10 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   const initialTime = session.remainingSeconds ?? session.durationSeconds ?? (session.test?.duration_minutes ? session.test.duration_minutes * 60 : 3600)
 
   const [current, setCurrent]   = useState(0)
+  const [lang, setLang]         = useState(() => localStorage.getItem('exam_lang') || 'en')
+  const [translatedMap, setTranslatedMap] = useState({})
+  const [translating, setTranslating] = useState(false)
+
   const [answers, setAnswers]   = useState(() => {
     const map = {}
     for (const q of questions) {
@@ -62,6 +67,21 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
     return () => clearInterval(timerRef.current)
   }, [submit])
 
+  const q = questions[current]
+
+  // Handle translation when Hindi is toggled or when navigating
+  useEffect(() => {
+    try { localStorage.setItem('exam_lang', lang) } catch {}
+    if (lang === 'hi' && q && !translatedMap[q.id]) {
+      setTranslating(true)
+      translateQuestionToHindi(q)
+        .then(tQ => {
+          setTranslatedMap(m => ({ ...m, [q.id]: tQ }))
+        })
+        .finally(() => setTranslating(false))
+    }
+  }, [lang, current, q?.id])
+
   async function persistAnswer(qId, nextState) {
     try {
       await api.saveAnswer(attemptId, {
@@ -103,15 +123,17 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
     }
   }
 
-  const q = questions[current]
   const qState = q ? (answers[q.id] || { selectedOption: null, isMarkedForReview: false }) : {}
   const urgent = timeLeft < 120
 
-  const currentOptions = q ? [
-    { key: 'A', text: q.option_a },
-    { key: 'B', text: q.option_b },
-    { key: 'C', text: q.option_c },
-    { key: 'D', text: q.option_d },
+  // If language is Hindi and we have translated version, use it
+  const displayQ = (lang === 'hi' && translatedMap[q?.id]) ? translatedMap[q.id] : q
+
+  const currentOptions = displayQ ? [
+    { key: 'A', text: displayQ.option_a },
+    { key: 'B', text: displayQ.option_b },
+    { key: 'C', text: displayQ.option_c },
+    { key: 'D', text: displayQ.option_d },
   ].filter(opt => opt.text !== undefined && opt.text !== null && opt.text !== '') : []
 
   // Count stats for summary
@@ -126,9 +148,31 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
           <div style={{fontSize:13,opacity:.6}}>Exam in Progress</div>
           <div style={{fontWeight:700,fontSize:16}}>{testTitle}</div>
         </div>
+
+        {/* Language Toggle: English <-> Hindi */}
+        <div className="lang-toggle-wrap">
+          <div className="lang-toggle">
+            <button
+              type="button"
+              className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
+              onClick={() => setLang('en')}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              className={`lang-btn ${lang === 'hi' ? 'active' : ''}`}
+              onClick={() => setLang('hi')}
+            >
+              हिन्दी
+            </button>
+          </div>
+        </div>
+
         <div className="exam-timer" style={urgent ? {color:'#F87171'} : {}}>
           {urgent ? '⚠️ ' : '⏱ '}{formatTime(timeLeft)}
         </div>
+
         <button
           className="btn btn-sm"
           style={{background:'rgba(255,255,255,.15)',color:'#fff',border:'none'}}
@@ -141,14 +185,19 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
       <div className="exam-body">
         {error && <div className="error-box">{error}</div>}
 
-        {q ? (
+        {displayQ ? (
           <>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <span className="q-number" style={{marginBottom:0}}>Question {current + 1} of {total}</span>
-                {q.subject && (
+                {displayQ.subject && (
                   <span className="badge" style={{background:'rgba(255,255,255,.12)',color:'#E2E8F0',fontSize:12}}>
-                    {q.subject}
+                    {displayQ.subject}
+                  </span>
+                )}
+                {lang === 'hi' && translating && (
+                  <span className="badge" style={{background:'rgba(254,240,138,.2)',color:'#FDE047',fontSize:11}}>
+                    🔄 अनुवाद हो रहा है...
                   </span>
                 )}
               </div>
@@ -157,14 +206,14 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
               <button
                 type="button"
                 className={`btn-mark ${qState.isMarkedForReview ? 'active' : ''}`}
-                onClick={() => toggleMarkForReview(q.id)}
+                onClick={() => toggleMarkForReview(displayQ.id)}
               >
                 {qState.isMarkedForReview ? '🟣 Marked for Review' : '🏷️ Mark for Review'}
               </button>
             </div>
 
             <div className="q-text" style={{whiteSpace:'pre-wrap'}}>
-              {q.question_text || q.text || q.question || 'Question content loading…'}
+              {displayQ.question_text || displayQ.text || displayQ.question || 'Question content loading…'}
             </div>
 
             <div className="options-list">
@@ -175,7 +224,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
                     key={opt.key}
                     type="button"
                     className={`option-btn${isSelected ? ' selected' : ''}`}
-                    onClick={() => selectOption(q.id, opt.key)}
+                    onClick={() => selectOption(displayQ.id, opt.key)}
                   >
                     <span style={{fontWeight:800,marginRight:12,color:isSelected ? '#C7D2FE' : '#94A3B8'}}>
                       ({opt.key})
@@ -194,7 +243,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
                     type="button"
                     className="btn btn-sm"
                     style={{background:'transparent',color:'rgba(255,255,255,.65)',border:'1px dashed rgba(255,255,255,.3)',padding:'5px 12px',fontSize:12}}
-                    onClick={() => selectOption(q.id, qState.selectedOption)}
+                    onClick={() => selectOption(displayQ.id, qState.selectedOption)}
                   >
                     ✕ Clear Response
                   </button>
@@ -205,7 +254,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
                 type="button"
                 className="btn-mark"
                 style={{fontSize:12.5,padding:'6px 14px'}}
-                onClick={() => markAndNext(q.id)}
+                onClick={() => markAndNext(displayQ.id)}
               >
                 🏷️ Mark &amp; Next →
               </button>
