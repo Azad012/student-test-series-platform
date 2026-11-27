@@ -327,16 +327,6 @@ export default function AuthPage({ onLogin, initialMode = 'login', onBack }) {
             </div>
           </form>
         )}
-
-        {mode === 'login' && (
-          <button
-            type="button"
-            className="demo-btn"
-            onClick={() => { setMode('login'); setEmail('student@testseries.app'); setPass('Student@123'); setError(''); setInfo('') }}
-          >
-            🎓 Fill Demo Student Credentials
-          </button>
-        )}
       </div>
     </div>
   )

@@ -227,7 +227,7 @@ export default function LandingPage({ onOpenAuth }) {
             <div className="step-card">
               <div className="step-circle">1</div>
               <h3>Create Your Account</h3>
-              <p>Sign up as a student in seconds or use demo credentials to explore the portal.</p>
+              <p>Sign up as a student in seconds and start practicing right away.</p>
             </div>
             <div className="step-card">
               <div className="step-circle">2</div>
