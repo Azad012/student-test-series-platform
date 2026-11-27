@@ -69,10 +69,16 @@ async function request(path, options = {}) {
 }
 
 export const mobileApi = {
+  sendRegisterOtp: (payload) =>
+    request('/api/auth/send-register-otp', { method: 'POST', body: JSON.stringify(payload) }),
   register: (payload) =>
     request('/api/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   login: (email, password) =>
     request('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  sendForgotOtp: (email) =>
+    request('/api/auth/forgot-password/send-otp', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (payload) =>
+    request('/api/auth/forgot-password/reset', { method: 'POST', body: JSON.stringify(payload) }),
   me: () => request('/api/auth/me'),
 
   courses: () => request('/api/courses'),
