@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { api } from '../api'
 import { translateQuestionToHindi } from '../utils/translator'
 
@@ -19,6 +19,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   const [current, setCurrent]   = useState(0)
   const [lang, setLang]         = useState(() => localStorage.getItem('exam_lang') || 'en')
   const [paletteFilter, setPaletteFilter] = useState('all') // 'all' | 'answered' | 'marked' | 'unanswered'
+  const [paletteScope, setPaletteScope] = useState('section') // 'section' | 'all'
   const [translatedMap, setTranslatedMap] = useState({})
   const [translating, setTranslating] = useState(false)
 
@@ -40,6 +41,19 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   const [submitting, setSub]    = useState(false)
   const [error, setError]       = useState('')
   const timerRef = useRef(null)
+
+  // Derive unique sections (subjects) from questions
+  const sections = useMemo(() => {
+    const map = new Map()
+    questions.forEach((qn, index) => {
+      const subj = qn.subject || 'General'
+      if (!map.has(subj)) {
+        map.set(subj, { name: subj, startIndex: index, questionIndices: [] })
+      }
+      map.get(subj).questionIndices.push(index)
+    })
+    return Array.from(map.values())
+  }, [questions])
 
   const submit = useCallback(async () => {
     if (submitting) return
@@ -69,6 +83,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   }, [submit])
 
   const q = questions[current]
+  const activeSectionName = q?.subject || 'General'
 
   // Handle translation when Hindi is toggled or when navigating
   useEffect(() => {
@@ -149,17 +164,28 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   const markedCount = Object.values(answers).filter(st => st.isMarkedForReview).length
   const unansweredCount = total - answeredCount
 
-  // Filter questions according to paletteFilter
-  const filteredQuestions = questions.map((qn, i) => ({ qn, index: i })).filter(({ qn }) => {
-    const st = answers[qn.id] || {}
-    const isAns = Boolean(st.selectedOption)
-    const isMarked = Boolean(st.isMarkedForReview)
+  // Filter questions based on scope (Section vs All) and filter pill
+  const scopeQuestions = useMemo(() => {
+    if (paletteScope === 'all' || sections.length <= 1) {
+      return questions.map((qn, i) => ({ qn, index: i }))
+    }
+    const currentSec = sections.find(s => s.name === activeSectionName)
+    if (!currentSec) return questions.map((qn, i) => ({ qn, index: i }))
+    return currentSec.questionIndices.map(i => ({ qn: questions[i], index: i }))
+  }, [paletteScope, sections, activeSectionName, questions])
 
-    if (paletteFilter === 'answered') return isAns
-    if (paletteFilter === 'marked') return isMarked
-    if (paletteFilter === 'unanswered') return !isAns
-    return true
-  })
+  const filteredQuestions = useMemo(() => {
+    return scopeQuestions.filter(({ qn }) => {
+      const st = answers[qn.id] || {}
+      const isAns = Boolean(st.selectedOption)
+      const isMarked = Boolean(st.isMarkedForReview)
+
+      if (paletteFilter === 'answered') return isAns
+      if (paletteFilter === 'marked') return isMarked
+      if (paletteFilter === 'unanswered') return !isAns
+      return true
+    })
+  }, [scopeQuestions, paletteFilter, answers])
 
   return (
     <div className="exam-wrap">
@@ -204,6 +230,38 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
 
       <div className="exam-body">
         {error && <div className="error-box">{error}</div>}
+
+        {/* SSC CBT Section Tabs (When test has multiple subjects) */}
+        {sections.length > 1 && (
+          <div className="section-bar-wrap">
+            <div className="section-bar-label">
+              <span style={{fontSize:11.5,fontWeight:800,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.55)'}}>
+                SECTIONS:
+              </span>
+            </div>
+            <div className="section-tabs">
+              {sections.map(sec => {
+                const isActive = activeSectionName === sec.name
+                const secAnswered = sec.questionIndices.filter(i => answers[questions[i]?.id]?.selectedOption).length
+                const secTotal = sec.questionIndices.length
+
+                return (
+                  <button
+                    key={sec.name}
+                    type="button"
+                    className={`section-tab-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => setCurrent(sec.startIndex)}
+                  >
+                    <span className="sec-title">{sec.name}</span>
+                    <span className={`sec-badge ${secAnswered === secTotal ? 'done' : ''}`}>
+                      {secAnswered}/{secTotal}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {displayQ ? (
           <>
@@ -313,10 +371,47 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
           <div style={{padding:40,textAlign:'center',color:'#94A3B8'}}>No questions available in this test.</div>
         )}
 
-        {/* Question Palette with Interactive Filter Buttons */}
+        {/* Question Palette with Interactive Filter Buttons and Scope Switcher */}
         <div style={{marginTop:32,paddingTop:20,borderTop:'1px solid rgba(255,255,255,.1)'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}>
-            <div style={{fontSize:13,opacity:.8,fontWeight:700}}>Question Palette</div>
+            <div style={{fontSize:13,opacity:.85,fontWeight:700}}>
+              Question Palette {sections.length > 1 && paletteScope === 'section' ? `• ${activeSectionName}` : '• All Questions'}
+            </div>
+
+            {sections.length > 1 && (
+              <div style={{display:'flex',gap:6}}>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{
+                    background: paletteScope === 'section' ? 'var(--primary)' : 'rgba(255,255,255,.08)',
+                    border: '1px solid rgba(255,255,255,.2)',
+                    color: '#fff',
+                    fontSize: 12,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                  }}
+                  onClick={() => setPaletteScope('section')}
+                >
+                  Section Only
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{
+                    background: paletteScope === 'all' ? 'var(--primary)' : 'rgba(255,255,255,.08)',
+                    border: '1px solid rgba(255,255,255,.2)',
+                    color: '#fff',
+                    fontSize: 12,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                  }}
+                  onClick={() => setPaletteScope('all')}
+                >
+                  All Questions
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="palette-filter-row">
@@ -325,7 +420,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
               className={`palette-filter-btn ${paletteFilter === 'all' ? 'active' : ''}`}
               onClick={() => setPaletteFilter('all')}
             >
-              All ({total})
+              All ({scopeQuestions.length})
             </button>
 
             <button
@@ -383,7 +478,7 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
                     key={qn.id || index}
                     className={`q-dot ${dotClass}`}
                     onClick={() => setCurrent(index)}
-                    title={`Question ${index + 1}: ${isMarked ? 'Marked for Review' : isAns ? 'Answered' : 'Not Answered'}`}
+                    title={`Q${index + 1} (${qn.subject || 'General'}): ${isMarked ? 'Marked for Review' : isAns ? 'Answered' : 'Not Answered'}`}
                   >
                     {index + 1}
                   </button>
