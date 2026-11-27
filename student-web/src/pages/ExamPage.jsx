@@ -56,6 +56,8 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
   const [lang, setLang]         = useState(() => localStorage.getItem('exam_lang') || 'en')
   const [paletteFilter, setPaletteFilter] = useState('all') // 'all' | 'answered' | 'marked' | 'unanswered'
   const [paletteScope, setPaletteScope] = useState('section') // 'section' | 'all'
+  const [sectionDropOpen, setSectionDropOpen] = useState(false)
+  const sectionDropRef = useRef(null)
   const [translatedMap, setTranslatedMap] = useState({})
   const [translating, setTranslating] = useState(false)
 
@@ -120,6 +122,17 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
 
   const q = questions[current]
   const activeSectionName = q?.subject || 'General'
+
+  // Close section dropdown when clicking outside
+  useEffect(() => {
+    function handleOutside(e) {
+      if (sectionDropRef.current && !sectionDropRef.current.contains(e.target)) {
+        setSectionDropOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [])
 
   // Handle translation when Hindi is toggled or when navigating
   useEffect(() => {
@@ -267,35 +280,52 @@ export default function ExamPage({ session, onSubmitted, onExit }) {
       <div className="exam-body">
         {error && <div className="error-box">{error}</div>}
 
-        {/* SSC CBT Section Tabs (When test has multiple subjects) */}
+        {/* SSC CBT Section Dropdown (When test has multiple subjects) */}
         {sections.length > 1 && (
-          <div className="section-bar-wrap">
-            <div className="section-bar-label">
-              <span style={{fontSize:11.5,fontWeight:800,letterSpacing:'.5px',textTransform:'uppercase',color:'rgba(255,255,255,.55)'}}>
-                SECTIONS:
-              </span>
-            </div>
-            <div className="section-tabs">
-              {sections.map(sec => {
-                const isActive = activeSectionName === sec.name
-                const secAnswered = sec.questionIndices.filter(i => answers[questions[i]?.id]?.selectedOption).length
-                const secTotal = sec.questionIndices.length
-
+          <div className="section-dropdown-wrap" ref={sectionDropRef}>
+            <button
+              type="button"
+              className="section-dropdown-btn"
+              onClick={() => setSectionDropOpen(o => !o)}
+            >
+              <span style={{fontSize:12,opacity:.6,fontWeight:800,letterSpacing:'.5px',textTransform:'uppercase'}}>📑 Section:</span>
+              <span style={{fontWeight:700,flex:1,textAlign:'left'}}>{activeSectionName}</span>
+              {(() => {
+                const sec = sections.find(s => s.name === activeSectionName)
+                if (!sec) return null
+                const secAns = sec.questionIndices.filter(i => answers[questions[i]?.id]?.selectedOption).length
+                const secTot = sec.questionIndices.length
                 return (
-                  <button
-                    key={sec.name}
-                    type="button"
-                    className={`section-tab-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setCurrent(sec.startIndex)}
-                  >
-                    <span className="sec-title">{sec.name}</span>
-                    <span className={`sec-badge ${secAnswered === secTotal ? 'done' : ''}`}>
-                      {secAnswered}/{secTotal}
-                    </span>
-                  </button>
+                  <span className={`sec-badge ${secAns === secTot ? 'done' : ''}`}>
+                    {secAns}/{secTot}
+                  </span>
                 )
-              })}
-            </div>
+              })()}
+              <span style={{marginLeft:4,fontSize:12,opacity:.7}}>{sectionDropOpen ? '▴' : '▾'}</span>
+            </button>
+
+            {sectionDropOpen && (
+              <div className="section-dropdown-menu">
+                {sections.map(sec => {
+                  const isActive = activeSectionName === sec.name
+                  const secAnswered = sec.questionIndices.filter(i => answers[questions[i]?.id]?.selectedOption).length
+                  const secTotal = sec.questionIndices.length
+                  return (
+                    <button
+                      key={sec.name}
+                      type="button"
+                      className={`section-dropdown-item ${isActive ? 'active' : ''}`}
+                      onClick={() => { setCurrent(sec.startIndex); setSectionDropOpen(false) }}
+                    >
+                      <span style={{fontWeight:700}}>{sec.name}</span>
+                      <span className={`sec-badge ${secAnswered === secTotal ? 'done' : ''}`}>
+                        {secAnswered}/{secTotal}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 
