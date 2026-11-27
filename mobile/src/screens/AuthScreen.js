@@ -474,30 +474,6 @@ export default function AuthScreen({ onAuthenticated, initialMode = 'login', onB
               </View>
             </>
           )}
-
-          {/* Optional Server URL configuration for custom backend */}
-          <TouchableOpacity
-            style={styles.serverToggle}
-            onPress={() => setShowServerBox((prev) => !prev)}
-          >
-            <Text style={styles.serverToggleText}>
-              {showServerBox ? '▾ Hide Backend URL Settings' : '⚙ Backend Connection Settings'}
-            </Text>
-          </TouchableOpacity>
-
-          {showServerBox && (
-            <View style={styles.serverBox}>
-              <Text style={styles.serverLabel}>Backend API URL (Render / Local):</Text>
-              <TextInput
-                style={styles.serverInput}
-                value={serverUrl}
-                onChangeText={setServerUrl}
-                autoCapitalize="none"
-                placeholder="https://exampulse-y2py.onrender.com"
-                placeholderTextColor={COLORS.muted}
-              />
-            </View>
-          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
