@@ -13,8 +13,8 @@ import {
 import { COLORS } from '../theme';
 import { mobileApi, setAuthToken, getApiUrl, setApiUrl } from '../api';
 
-export default function AuthScreen({ onAuthenticated }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'forgot'
+export default function AuthScreen({ onAuthenticated, initialMode = 'login', onBack }) {
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'forgot'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -183,6 +183,17 @@ export default function AuthScreen({ onAuthenticated }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {onBack && (
+          <TouchableOpacity
+            style={{ marginBottom: 12, alignSelf: 'flex-start' }}
+            onPress={onBack}
+          >
+            <Text style={{ color: '#94A3B8', fontSize: 13, fontWeight: '700' }}>
+              ← Back to Home
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <View style={styles.hero}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>⚡ EXAMPULSE</Text>

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { COLORS } from './src/theme';
 import { hydrateClientConfig, mobileApi, setAuthToken } from './src/api';
+import LandingScreen from './src/screens/LandingScreen';
 import AuthScreen from './src/screens/AuthScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
 import CourseTestsScreen from './src/screens/CourseTestsScreen';
@@ -22,6 +23,8 @@ import ProfileScreen from './src/screens/ProfileScreen';
 export default function App() {
   const [booting, setBooting] = useState(true);
   const [user, setUser] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
   const [tab, setTab] = useState('courses'); // 'courses' | 'dashboard' | 'profile'
   const [activeCourse, setActiveCourse] = useState(null);
   const [examSession, setExamSession] = useState(null);
@@ -50,6 +53,7 @@ export default function App() {
   async function handleLogout() {
     await setAuthToken('');
     setUser(null);
+    setShowAuth(false);
     setActiveCourse(null);
     setExamSession(null);
     setReviewAttemptId(null);
@@ -67,10 +71,28 @@ export default function App() {
   }
 
   if (!user) {
+    if (!showAuth) {
+      return (
+        <SafeAreaView style={[styles.safe, { backgroundColor: COLORS.navy, paddingTop: topPad }]}>
+          <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
+          <LandingScreen
+            onOpenAuth={(mode = 'login') => {
+              setAuthMode(mode);
+              setShowAuth(true);
+            }}
+          />
+        </SafeAreaView>
+      );
+    }
+
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: COLORS.navy, paddingTop: topPad }]}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
-        <AuthScreen onAuthenticated={setUser} />
+        <AuthScreen
+          initialMode={authMode}
+          onAuthenticated={setUser}
+          onBack={() => setShowAuth(false)}
+        />
       </SafeAreaView>
     );
   }
