@@ -16,14 +16,24 @@ export default function DashboardPage({ onReview }) {
   if (loading) return <div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner" /></div>
   if (error)   return <div className="error-box">{error}</div>
 
-  const stats = data?.stats || {}
+  const summary = data?.summary || data?.stats || {}
   const attempts = data?.attempts || data?.recentAttempts || []
 
+  const totalQuestionsAnsweredOrSeen =
+    summary.totalQuestions ??
+    (attempts.length > 0
+      ? attempts.reduce((sum, a) => sum + (a.total_questions ?? a.totalQuestions ?? 0), 0)
+      : (summary.totalAttempted != null ? summary.totalAttempted + (summary.totalUnattempted || 0) : null))
+
+  const avgScoreVal = summary.averageScorePercent ?? summary.avgScore
+  const bestScoreVal = summary.bestScorePercent ?? summary.bestScore
+  const testsTakenVal = summary.totalTestsTaken ?? summary.totalAttempts ?? attempts.length
+
   const cards = [
-    { label:'Tests Taken',    val: stats.totalAttempts  ?? attempts.length, color:'var(--primary)' },
-    { label:'Avg Score',      val: stats.avgScore       != null ? `${stats.avgScore}%` : '—', color:'var(--success)' },
-    { label:'Best Score',     val: stats.bestScore      != null ? `${stats.bestScore}%` : '—', color:'var(--warning)' },
-    { label:'Total Questions',val: stats.totalQuestions ?? '—', color:'var(--muted)' },
+    { label:'Tests Taken',    val: testsTakenVal, color:'var(--primary)' },
+    { label:'Avg Score',      val: avgScoreVal != null ? `${avgScoreVal}%` : '—', color:'var(--success)' },
+    { label:'Best Score',     val: bestScoreVal != null ? `${bestScoreVal}%` : '—', color:'var(--warning)' },
+    { label:'Total Questions',val: totalQuestionsAnsweredOrSeen ?? '—', color:'var(--muted)' },
   ]
 
   return (
@@ -55,15 +65,20 @@ export default function DashboardPage({ onReview }) {
               </tr>
             </thead>
             <tbody>
-              {attempts.map((a, i) => (
-                <tr key={i}>
-                  <td><div style={{fontWeight:600}}>{a.testTitle || a.title || `Test #${i+1}`}</div></td>
-                  <td><span className="badge badge-primary">{a.score ?? a.marks ?? '—'}/{a.total ?? a.maxMarks ?? 100}</span></td>
-                  <td>{a.accuracy != null ? `${a.accuracy}%` : '—'}</td>
-                  <td className="text-muted text-sm">{a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : '—'}</td>
-                  <td><button className="btn btn-outline btn-sm" onClick={() => onReview(a.id || a.attemptId)}>Review</button></td>
-                </tr>
-              ))}
+              {attempts.map((a, i) => {
+                const title = a.test_title || a.testTitle || a.title || `Test #${i+1}`
+                const maxScore = a.max_score ?? a.total ?? a.maxMarks ?? 100
+                const dateVal = a.submitted_at || a.submittedAt || a.started_at
+                return (
+                  <tr key={a.id || i}>
+                    <td><div style={{fontWeight:600}}>{title}</div></td>
+                    <td><span className="badge badge-primary">{a.score ?? a.marks ?? '—'}/{maxScore}</span></td>
+                    <td>{a.accuracy != null ? `${a.accuracy}%` : '—'}</td>
+                    <td className="text-muted text-sm">{dateVal ? new Date(dateVal).toLocaleDateString() : '—'}</td>
+                    <td><button className="btn btn-outline btn-sm" onClick={() => onReview(a.id || a.attemptId)}>Review</button></td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
